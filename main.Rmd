@@ -1,0 +1,94 @@
+---
+author: |
+  | Alexander Rauhut
+  | Institut für Englische Philologie
+  | Freie Universität Berlin
+title: Ambiguity and Word Classes Lol!
+date: 2021-07-15
+
+output:
+    pdf_document:
+        toc: true
+        number_sections: true
+
+citation_package: biblatex
+link-citations: yes
+bibliography: uni.bib
+csl: styles/unified-style-sheet-for-linguistics.csl
+
+---
+
+# Introduction
+
+Ambiguity is pervasive in language. blablabla
+
+Conversion is a productive process that inevitably produces homophones.
+Additionally, noun-verb and verb-noun conversions are doubly homophonous with inflectional affixes in *-s*.
+
+# Avoiding Ambiguity
+
+formal equivalence
+homonymy and polysemy
+
+that deletion is not permitted in non-extraposed subject clauses
+@wasow15
+
+(@) This  paper demonstrates that the differences in duration of English final S as a function of the morphological function it expresses.
+
+## Brainstorm
+
+Hypothesis: third person singular -s is avoided in noun-verb conversion
+take a polysemous word and gather identical n-grams
+
+## Literature
+
+Studies like @plag17 call into question whether there is perfect homonymy between different types of word final *-s*. The study found significant length differences, and hypothesizes that
+@song_et_al13 did not find any such effect, however, albeit on a more lexically restricted study.
+
+In a more recent study, @tomaschek_et_al21 show that length of final *-s* can be modelled as having a discriminatory function depending on the lexical and phonological context.
+In other words, the duration was found to decrease with increasing contextual ambiguity. <!-- TODO: this doesn't sound right-->
+"Energy is not invested in a signal that creates confusion instead of clarity." [@tomaschek_et_al21, p. 154]
+This points to some degree of ambiguity sensitivity, even though it is not entirely clear what it means for ambiguity avoidance.
+
+Systematic phonetic differences potentially contribute to the disambiguation
+
+@wasow15 surveys a variety of studies ...
+and concludes that ambiguity avoidance has not been shown to be as common as
+expected considering the pervasiveness of ambiguities in language.
+Grice underestimated the pervasiveness of ambiguity.
+Provides an attempt at a taximony.
+- word order freezing as ambiguity avoidance
+- that deletion only in unambiguous syntactic context
+- German free syntax but default SVO reading.
+    Wasow does not call it default.
+
+@piantadosi_et_al12
+
+@trott+bergen20:
+Linguistic forms are expected to show a certain degree of ambiguity in order to provide an efficient system.
+Simulations suggest that ambiguity caused by homophony is more common in natural languages than expected, even when taking into account.
+<!-- TODO: figure out how expected homophone ratios are calculated -->
+Homophones are smoothed out in lexically neighboring areas.
+
+Recently, word embedding techniques have been used for various lexical tasks.
+@beekhuizen_et_al21:
+word2vec for distinguishing polysemes from homonyms?
+
+@lee21
+In combination with contextual word embeddings, clustering techniques have been
+used to detect homonymy.
+
+# Considerations
+
+Textual co-occurrence can only serve as an upper bound.
+Prosodic markers in spoken language can further disambiguate most types of ambiguity.
+The same is true for more general types of background knowledge.
+
+# Conclusion
+
+Include more contextual and "world knowledge" information, such as images [e.g. @kottur16; @shahmohammadi21].
+Recent advances in context embedding might provide tools to further test where real ambiguity exists and where it affects the system of language.
+
+# Bibliography
+
+<!-- vim: set ft=markdown: -->
