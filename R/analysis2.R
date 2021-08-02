@@ -1,4 +1,5 @@
 library(data.table)
+library(occurR)
 library(ggplot2)
 
 clean_attr <- function(x) {
@@ -8,87 +9,136 @@ clean_attr <- function(x) {
 }
 
 import_corpus <- function(corpus, p_attrs, s_attrs) {
-  lemma <- if (grepl("^BNC", corpus)) "hw" else "lemma"
-  if (missing(p_attrs)) p_attrs <- c("word", lemma, "pos")
-  if (missing(s_attrs)) s_attrs <- "text_id" # TODO: doesn't work
+  #TODO: multiple `s_attrs` don't work
 
   cmd <- paste("cwb-decode", corpus,
-               paste("-S", s_attrs, collapse = " "),
-               paste("-P", p_attrs, collapse = " "))
+    paste(" -S", s_attrs, collapse = ""),
+    paste(" -P", p_attrs, collapse = ""))
 
-  fread(cmd = cmd, col.names = c(s_attrs, p_attrs),
-        select = seq_along(c(p_attrs, s_attrs)), # sometimes empty collumn
-        sep = "\t", quote = "", na.strings = NULL
-    )[, word := tolower(word)
-    ][, (p_attrs) := lapply(.SD, clean_attr), .SDcols = p_attrs
-    ][, # replace id strings with int = starting position
-        (s_attrs) := lapply(.SD, \(x) chmatch(x, x)), .SDcols = s_attrs
-    ]
+  fread(cmd = cmd,
+      col.names = c(s_attrs, p_attrs),
+      select = seq_along(c(p_attrs, s_attrs)), #sometimes trailing collumn
+      sep = "\t", quote = "", na.strings = NULL
+  )[, word := tolower(word)
+  ][, (p_attrs) := lapply(.SD, clean_attr), .SDcols = p_attrs
+  ][, #replace id strings with int = startingposition
+      (s_attrs) := lapply(.SD, \(x) chmatch(x, x)), .SDcols = s_attrs
+  ]
 }
 
-x <- import_corpus("BNC-BABY")
-saveRDS(x, "ja_lol_data")
+spread <- function(x, group, values) {
+  dcast(x, paste(group, collapse = "~"),
+        value.var = values,
+        fill = 0L)
+}
 
-x <- readRDS("ja_lol_data")
-lol <- c("word", "pos")
-x[, lapply(.(lol), \(x) as.integer(x))]
+group_pos <- function(x, lookup) {
+  for (i in seq_along(lookup))
+    x[grepl(lookup[i], pos), pos_group := names(lookup[i])]
 
-x[, d := diff(c(0, .I)), by = word]
+  x[, pos_group := factor(pos_group, levels = names(lookup))
+  ][is.na(pos_group), pos_group := "other"]
+}
 
-lookup <- c(NULL
-  , noun   = "^N"
-  , verb   = "^VV"
-  , noun_s = "^NN2"
-  , verb_s = "^VVZ"
-  , ed     = "^VVD|^VVN"
-  , ambig  = "NN2-VVZ|VVZ-NN2"
-)
+group_suffix <- function(x, suffix) {
+  regex <- paste0(".*", suffix)
+  x[, (suffix) := factor(
+      grepl(regex, word) & grepl(regex, pos_group),
+      labels = c(paste0("no_", suffix), suffix)
+  )]
+}
 
-for (i in seq_along(lookup))
-  x[grepl(lookup[i], pos), pos2 := names(lookup[i])]
+dwg <- function(cpos, f, size) { # word growth dispersion
+  dd <- cpos - shift(cpos, fill = 0L) - (size / f)
+  mad <- sum(abs(dd)) / f
+  worst_mad <- (size - f + 1 - size / f) / (f / 2)
+  mad / worst_mad
+}
 
-x[is.na(pos2), pos2 := "other"]
+get_dwg <- function(group, x) {
+  x <- x[, .(
+      f = .N,
+      dwg = dwg(.I, .N, nrow(x))
+      ), by = group]
+  if (length(group) > 1)
+    spread(x, group, list("f", "dwg"))
+  else x
+}
 
-x[, pos3 := fifelse(word %like% "*s" & pos2 %like% "*s", "inflected", "base")]
-# x[!grepl("^N|^V", pos), pos3 := "other"]
+get_dp <- function(group, x, measure) { # TODO: need to streamline `dispersion`
+  # helper to handle variable arguments to `interaction` in `[.data.table`
+  ia <- \(y) interaction(lapply(y, \(i) x[[i]]), sep = "\t")
 
-y <- dcast(x,
-  hw ~ pos2,
-  fun = list(length, list),
-  subset = grepl("^N|^VV", pos), # TODO: fixme
-  value.var = list("pos2", "text_id")
-)
+  x <- x[, .N, by = c(group, "text_id")]
+  x <- x[, .(dispersion(N, ia(group), text_id, measure))
+       ][, (group) := tstrsplit(types, "\t", fixed = TRUE)
+       # set to NA where frequency ==0 ,needs fix in `dispersion`
+       ][f == 0, (measure) := NA
+       ][, `:=`(types = NULL, f = NULL)]
+  if (length(group) > 1) {
+      x <- spread(x, group, measure)
+      id_s_attr <- which(names(x) == group[1])
+      setnames(x, -id_s_attr, \(y) paste0(measure, "_", y))
+  }
+  x
+}
 
-y[, f := rowSums(.SD), .SDcols = -1]
-setorder(y, -f)
-names(y)
+add_measures <- function(x, s_attr, groups, disp_fun) {
+  groups <- Map(c, s_attr, groups)
+  Reduce(\(x, y) x[y, on = s_attr], c( # merge
+      lapply(groups, get_dwg, x),
+      lapply(groups, get_dp, x, disp_fun)
+  ))
+}
 
-head(y[f > 10], 15)
+# system.time({
+x <- import_corpus(
+        corpus = "BNC-BABY",
+        p_attrs = c("word", "hw", "pos"),
+        s_attrs = "text_id"
+    ) |>
+    group_pos(c(
+        noun = "^N",
+        verb = "^VV",
+        noun_s = "^NN2",
+        verb_s = "^VVZ",
+        verb_ed = "^VVD|^VVN",
+        ambig = "NN2-VVZ|VVZ-NN2"
+    )) |>
+    group_suffix("ed") |>
+    group_suffix("s") |>
+    add_measures(
+        s_attr = "hw",
+        groups = list(NULL, "s", "ed", "pos_group"),
+        disp_fun = "dp.norm"
+    )
 
-glm(, data = x)
+setcolorder(x, sort(names(x), decreasing = TRUE))
+# })
 
-y <- x[, .N, by = .(hw, pos3)] |>
-  dcast(hw ~ pos3, fun = sum)
-y <- y[!(base == 0 & inflected == 0)
-  ][,
-  f := base + inflected + other
-  ]
+t(x[hw == "test", -1])
+hist(x[dwg_s != 0, dwg_s])
 
-model_data <- y[, .(hw, f, ratio = inflected / f)]
+y <- x[1:200, ]
 
-# ReadingSkills
-# library(betareg)
-# correction recommended by Zeilis blabla
+pad <- function(x, n) {
+  na <- rep(NA, n - 1)
+  c(na, x, na)
+}
 
-model_data <- y[, ratio := (ratio * (nrow(y) - 1) + 0.5) / nrow(y)]
+embed_kwic <- function(x, n) {
+  lev <- levels(x)
+  outnames <- c(paste0("L", 1:n), paste0("R", 1:n))
 
-ggplot(y[f > 100], aes(ratio)) + geom_histogram()
+  x <- pad(x, n + 1)
+  n <- n * 2 + 1
+  x <- embed(x, n)
+  x <- x[, -ceiling(n / 2)] # remove the keyword
 
-# y <- dcast(x, lemma ~ pos2, value.var = "V1", fun = sum)
+  # class(x) <- "factor"
+  levels(x) <- lev
+  colnames(x) <- outnames
+  x
+}
 
-# # preserve corpus positions in list column
-# # to calculate dispersions for different combos (with unite/intersect)
-# x[, .(cpos = list(.I), ids = list(text_id)), by = word]
-
-lol <- c(1, 2, 3, 4)
-length(lol) <- 3
+#vim:shiftwidth=4:
