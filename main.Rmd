@@ -25,6 +25,12 @@ Ambiguity is pervasive in language. blablabla
 Conversion is a productive process that inevitably produces homophones.
 Additionally, noun-verb and verb-noun conversions are doubly homophonous with inflectional affixes in *-s*.
 
+``` {R, eval = TRUE}
+var = 1 + 1
+print(var)
+```
+
+
 # Avoiding Ambiguity
 
 formal equivalence
