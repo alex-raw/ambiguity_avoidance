@@ -216,31 +216,35 @@ z <- y[!f_other / f == 1]
 z[, noun := f_noun > 0]
 z[, verb := f_verb > 0]
 z[, NOUN := f_noun > f_verb]
-z[, conv := (noun & verb) | f_ambig > 0]
+z[, conv := f_noun > 10 & f_verb > 10 | f_ambig > 0]
 z[, ratio_s := f_s / f]
 z[, ratio_noun_s := f_noun_s / f]
 z[, ratio_verb_s := f_verb_s / f]
 z[, entropy := f_noun / f * log(f_noun / f / (f_verb / f))]
 
+saveRDS(z, "BABY_1")
+
 library(ggplot2)
 
-z[f > 100 & f_s > 0] |>
+z[f > 100] |>
 ggplot(aes(log(f_s), log(f), color = conv)) +
-    geom_density2d()
+    geom_density_2d() + geom_point()
 
-z[f > 100 & f_s > 0] |>
-ggplot(aes(-log10(f_verb_s / f), color = conv)) +
+z[f > 100] |>
+ggplot(aes(log(f_verb_s), color = conv)) +
     geom_density() + geom_rug()
 
 library(gamlss)
 
 names(z)
-training <- z[f > 50 & entropy != Inf, .(entropy, ratio_s, ratio_noun_s, conv, alpha1, dwg, dp.norm, htr, f, f_noun, f_verb)]
-# TODO: conv is too restrictive as predictor for ratio_s
-lol <- gamlss(ratio_s ~ I(f_noun / f) * I(f_verb / f) + dwg + dp.norm, family = BEINF, data = na.omit(training))
+training <- z[f > 100, .(f, f_s, ratio_s, htr, dwg, ttr, NOUN, conv, dp.norm)]
+# TODO: conv is not a good predictor for ratio_s
+lol <- gamlss(ratio_s ~ conv + dwg + htr + dp.norm, family = BEINF, data = na.omit(training))
 summary(lol)
 plot(lol)
 coef(lol)
+predict(lol)
+term.plot(lol)
 
 plot(z[f > 50, .(htr, dwg, log(f), ratio_noun_s)])
 # vim:shiftwidth=4:
