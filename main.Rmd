@@ -90,6 +90,28 @@ Textual co-occurrence can only serve as an upper bound.
 Prosodic markers in spoken language can further disambiguate most types of ambiguity.
 The same is true for more general types of background knowledge.
 
+# Methodology
+
+## Textual specificity
+
+Two types of dispersion are used here.
+One is the deviation of proportions (DP.norm) [@gries08], more specifically the normalized version [cf. @lijffijt+gries12].
+DP.norm is a corpus-part-based measure bound between 0 and 1.
+Values close to 1 indicate a high deviation, therefore a low dispersion. It can be interpreted as a measure of how evenly tokens are spread over the corpus parts.
+It cannot account for short bursts of occurrences (example?), therefore, word growth dispersion (DWG) [@zimmermann20] is used as well, which is based on distances between occurrences.
+DWG is a measure of how regularly a token occurs across an entire corpuoccurs across an entire corpus.
+
+If ambiguity is regularly avoided, it should be expected that with growing word class ambiguity, the use of *-s* becomes more context-dependent.
+Considering a given dispersion or "clumpiness" of contexts in which a lexeme is likely to occur,
+the existence of avoidance-contexts should cause a penalty to dispersion and make the distribution clumpier.
+
+Problem:
+The contexts in which ambiguity is avoided/not avoided might be rather evenly dispersed themselves.
+This could mask potential clumpiness of *-s* occurrences.
+
+It is difficult to identify avoidance contexts formally.
+Lexical and syntactical correlates of the avoided structure might be avoided as a side effect, and cause fuzzier overall differences in structure.
+
 # Conclusion
 
 Include more contextual and "world knowledge" information, such as images [e.g. @kottur16; @shahmohammadi21].
