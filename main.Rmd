@@ -25,11 +25,8 @@ Ambiguity is pervasive in language. blablabla
 Conversion is a productive process that inevitably produces homophones.
 Additionally, noun-verb and verb-noun conversions are doubly homophonous with inflectional affixes in *-s*.
 
-``` {R, eval = TRUE}
-var = 1 + 1
-print(var)
-```
-
+The emergence of lexical clusters is conditioned by frequency.
+Various studies have provided evidence [review in @diessel16]
 
 # Avoiding Ambiguity
 
@@ -99,7 +96,7 @@ One is the deviation of proportions (DP.norm) [@gries08], more specifically the 
 DP.norm is a corpus-part-based measure bound between 0 and 1.
 Values close to 1 indicate a high deviation, therefore a low dispersion. It can be interpreted as a measure of how evenly tokens are spread over the corpus parts.
 It cannot account for short bursts of occurrences (example?), therefore, word growth dispersion (DWG) [@zimmermann20] is used as well, which is based on distances between occurrences.
-DWG is a measure of how regularly a token occurs across an entire corpuoccurs across an entire corpus.
+DWG is a measure of how regularly a token occurs across an entire corpus occurs across an entire corpus.
 
 If ambiguity is regularly avoided, it should be expected that with growing word class ambiguity, the use of *-s* becomes more context-dependent.
 Considering a given dispersion or "clumpiness" of contexts in which a lexeme is likely to occur,
@@ -112,10 +109,16 @@ This could mask potential clumpiness of *-s* occurrences.
 It is difficult to identify avoidance contexts formally.
 Lexical and syntactical correlates of the avoided structure might be avoided as a side effect, and cause fuzzier overall differences in structure.
 
+## Lexical specificity
+
+As a simple measure the productiviy index [@baayen]
+
 # Conclusion
 
 Include more contextual and "world knowledge" information, such as images [e.g. @kottur16; @shahmohammadi21].
 Recent advances in context embedding might provide tools to further test where real ambiguity exists and where it affects the system of language.
+
+There are no significant differences in spread and frequency of *-s* in lexical forms that occur as verb-noun or noun-verb conversions. (???)
 
 # Bibliography
 
