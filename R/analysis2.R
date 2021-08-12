@@ -40,7 +40,7 @@ group_pos <- function(x, lookup) {
 }
 
 group_suffix <- function(x, suffix) {
-    regex <- paste0(".*", suffix)
+    regex <- paste0(".*", suffix, "$")
     x[, (suffix) := factor(
           grepl(regex, word) & grepl(regex, pos_group),
           labels = c(paste0("no_", suffix), suffix),

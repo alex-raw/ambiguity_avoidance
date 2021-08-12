@@ -92,7 +92,7 @@ The same is true for more general types of background knowledge.
 ## Textual specificity
 
 Two types of dispersion are used here.
-One is the deviation of proportions (DP.norm) [@gries08], more specifically the normalized version [cf. @lijffijt+gries12].
+One is the deviation of proportions across texts (DP.norm) [@gries08], more specifically the normalized version [cf. @lijffijt+gries12].
 DP.norm is a corpus-part-based measure bound between 0 and 1.
 Values close to 1 indicate a high deviation, therefore a low dispersion. It can be interpreted as a measure of how evenly tokens are spread over the corpus parts.
 It cannot account for short bursts of occurrences (example?), therefore, word growth dispersion (DWG) [@zimmermann20] is used as well, which is based on distances between occurrences.

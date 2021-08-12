@@ -1,42 +1,63 @@
 library(text2vec)
 library(data.table)
-data("movie_review")
-setDT(movie_review)
-setkey(movie_review, id)
-set.seed(2016L)
 
-all_ids <- movie_review$id
-train_ids <- sample(all_ids, 4000)
-test_ids <- setdiff(all_ids, train_ids)
-train <- movie_review[J(train_ids)]
+train_embedding <- function(x, iter = 10, threads = 12) {
+    it_train <- itoken(x$text,
+        tokenizer = space_tokenizer,
+        # TODO: test stopwords
+        progressbar = FALSE
+    )
 
-it_train <- itoken(train$review,
-  preprocessor = tolower,
-  tokenizer = word_tokenizer,
-  ids = train$id,
-  progressbar = FALSE
-)
+    vectorizer <- vocab_vectorizer(create_vocabulary(it_train))
+    glove <- GlobalVectors$new(rank = 50, x_max = 10)
+    main <- glove$fit_transform(
+        create_tcm(it_train, vectorizer, skip_grams_window = 5L),
+        n_iter = iter,
+        convergence_tol = 0.01,
+        n_threads = threads
+    )
+    list(main = main, context = glove$components)
+}
 
-vocab <- create_vocabulary(it_train)
-vectorizer <- vocab_vectorizer(vocab)
+get_vectors <- function(x) {
+    wv <- x[, .(text = paste0(word, collapse = " ")), by = text_id] |>
+        train_embedding(iter = 10, threads = 2)
+    wv$main + t(wv$context)
+}
 
-tcm <- create_tcm(it_train, vectorizer, skip_grams_window = 5L)
-glove <- GlobalVectors$new(rank = 50, x_max = 10)
+add_cos_sim <- function(x) {
+    word_vectors <- get_vectors(x)
+    x[s == "s", .(word = first(word)), by = hw
+    ][, lapply(.SD, as.character)
+    ][hw %chin% rownames(word_vectors) & hw != word,
+        cos_sim_s := psim2(
+            word_vectors[hw, ],
+            word_vectors[word, ],
+            method = "cosine",
+            norm = "l2"
+        )
+    ][, `:=`(hw = as.factor(hw), word = NULL)]
+}
 
-wv_main <- glove$fit_transform(tcm,
-  n_iter = 10,
-  convergence_tol = 0.01,
-  n_threads = 8
-)
+# group_suffix <- function(x, suffix) {
+#     regex <- paste0(".*", suffix, "$")
+#     x[, (suffix) := factor(
+#           grepl(regex, word) & grepl(regex, pos_group),
+#           labels = c(paste0("no_", suffix), suffix),
+#           exclude = ""
+#     )]
+# }
 
-wv_context <- glove$components
-word_vectors <- wv_main + t(wv_context)
+# x <- readRDS("BNC_BABY_data_raw") |>
+#     group_suffix("ed") |>
+#     group_suffix("s")
 
-ing <- word_vectors["go", , drop = FALSE]
+system.time(sims <- add_cos_sim(x))
 
-cos_sim <- sim2(word_vectors, ing, method = "cosine", norm = "l2")
-plot(sort(cos_sim[, 1], decreasing = TRUE))
+y <- readRDS("BNC_BABY_data_annotated")
+sims[, hw := as.factor(hw)]
+y <- y[sims, on = "hw"]
+saveRDS(y, "BNC_BABY_data_annotated_2")
+"cos_sim_s" %in% names(y)
 
-dtm_train <- create_dtm(it_train, vectorizer)
-
-lol <- system2("cwb-decode", "-C BROWN-C -P word", stdout = TRUE)
+sims[order(cos_sim_s, na.last = NA)] |> print(100)
