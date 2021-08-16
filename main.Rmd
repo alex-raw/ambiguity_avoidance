@@ -3,7 +3,7 @@ author: |
   | Alexander Rauhut
   | Institut für Englische Philologie
   | Freie Universität Berlin
-title: Ambiguity and Word Classes Lol!
+title: Conversion and
 date: 2021-07-15
 
 output:
@@ -18,6 +18,8 @@ csl: styles/unified-style-sheet-for-linguistics.csl
 
 ---
 
+\newpage
+
 # Introduction
 
 Ambiguity is pervasive in language. blablabla
@@ -25,8 +27,30 @@ Ambiguity is pervasive in language. blablabla
 Conversion is a productive process that inevitably produces homophones.
 Additionally, noun-verb and verb-noun conversions are doubly homophonous with inflectional affixes in *-s*.
 
+This study will investigate potential large scale effects that the homonymy of *-s* has.
+
 The emergence of lexical clusters is conditioned by frequency.
 Various studies have provided evidence [review in @diessel16]
+
+In addition to the shared form, there is extensive conversion in the English language, allowing verbs to be readily used as nouns and vice-versa.
+However, the function of verbal *-s* and nominal *-s* is quite different, and the immediate grammatical context can be expected to be enough for disambiguation.
+
+In section 2, I will review some of the literature on ambiguity and ambiguity avoidance and gather information from other fields of linguistics.
+Section 3 is an explorative overview over some ambiguous uses of *-s*.
+The approach taken is using POS ambiguity tags and ranked association values (log-likelihood ratio/LLR) in the same spirit of collostruction analysis [@stefanowitsch+gries03].
+In addition, I correlated the resulting association values with cosine similarities between the base forms and affixed forms
+taken from a simple GloVe embedding [@pennington14; @text2vec] trained on the BNC.
+The result shows that larger differences between base and affixed form lead to significantly fewer ambiguous tags.
+
+Finally, in section 4, I will present a series of GAMLSS models (Generalized Additive Models for Location, Scale and Shape [@stasinopoulos18; @gamlss])
+that attempt to model the influence of verb-noun or noun-verb conversion on the distribution of *-s* and *-ed* suffixation
+while controlling for textual dispersion, regularity of occurrence and contextual flexibility.
+
+In fact, it is difficult to come up with genuine examples of structural ambiguity caused by the homonymy of *-s*.
+<!-- true? look for ambiguous examples in corpus -->
+
+The study will conclude with a series of generalized additive models in order to explore effects of conversion on the morphological composition of lexemes.
+The data was preprocessed using the *Corpus Workbench* [@cwb], all analyses were coded in *R* 4.1.0 [@R_base; @data.table], figures were created with *ggplot2* [@ggplot].
 
 # Avoiding Ambiguity
 
@@ -38,10 +62,7 @@ that deletion is not permitted in non-extraposed subject clauses
 
 (@) This  paper demonstrates that the differences in duration of English final S as a function of the morphological function it expresses.
 
-## Brainstorm
-
 Hypothesis: third person singular -s is avoided in noun-verb conversion
-take a polysemous word and gather identical n-grams
 
 ## Literature
 
@@ -66,6 +87,8 @@ Provides an attempt at a taximony.
     Wasow does not call it default.
 
 @piantadosi_et_al12
+Some degree of ambiguity is required in an efficient communicative system.
+ease of processing blabla
 
 @trott+bergen20:
 Linguistic forms are expected to show a certain degree of ambiguity in order to provide an efficient system.
@@ -73,34 +96,44 @@ Simulations suggest that ambiguity caused by homophony is more common in natural
 <!-- TODO: figure out how expected homophone ratios are calculated -->
 Homophones are smoothed out in lexically neighboring areas.
 
-Recently, word embedding techniques have been used for various lexical tasks.
-@beekhuizen_et_al21:
-word2vec for distinguishing polysemes from homonyms?
-
-@lee21
-In combination with contextual word embeddings, clustering techniques have been
-used to detect homonymy.
-
 # Considerations
 
 Textual co-occurrence can only serve as an upper bound.
 Prosodic markers in spoken language can further disambiguate most types of ambiguity.
 The same is true for more general types of background knowledge.
+In general, it can be expected that there tends to be enough structural and contextual information to disambiguate *-s*.
 
 # Methodology
 
+## Data
+
+Lemmas that had *-s* forms that only occurred in totally fixed contexts, therefore scoring alpha (Hapax) values of 0 were excluded as outliers.
+Exclusion of those observations significantly improved distributional properties of the models.
+On the lower frequency bands this is due to a substantial decrease of noise as it is difficult to estimate the proportion of *-s* only based on a few occurrences of *-s*.
+For the higher frequency bands, it is in many cases equal to the exclusion of mostly names and idiomatic expressions.
+<!-- TODO: include example -->
+This is conceptually unproblematic since multi-word structures should be treated as individual units, and as a different category of lexeme.
+
 ## Textual specificity
 
-Two types of dispersion are used here.
+In order to measure the textual specificity of lexemes,
+and penalize forms with very specific contextually bound uses,
+two types of dispersion are used.
 One is the deviation of proportions across texts (DP.norm) [@gries08], more specifically the normalized version [cf. @lijffijt+gries12].
 DP.norm is a corpus-part-based measure bound between 0 and 1.
-Values close to 1 indicate a high deviation, therefore a low dispersion. It can be interpreted as a measure of how evenly tokens are spread over the corpus parts.
-It cannot account for short bursts of occurrences (example?), therefore, word growth dispersion (DWG) [@zimmermann20] is used as well, which is based on distances between occurrences.
+Values close to 1 indicate a high deviation, therefore a low dispersion.
+It can be interpreted as a measure of how evenly tokens are spread over the corpus parts.
+
+It cannot account for short bursts of occurrences (example?),
+therefore, word growth dispersion (DWG) [@zimmermann20] is used as well, which is based on distances between occurrences.
 DWG is a measure of how regularly a token occurs across an entire corpus occurs across an entire corpus.
 
 If ambiguity is regularly avoided, it should be expected that with growing word class ambiguity, the use of *-s* becomes more context-dependent.
 Considering a given dispersion or "clumpiness" of contexts in which a lexeme is likely to occur,
 the existence of avoidance-contexts should cause a penalty to dispersion and make the distribution clumpier.
+
+Both measures were designed to measure dispersion or commonness of lexical items as extension to the most commonly used plain frequencies,
+however they highlight different aspects both conceptually and empirically [cf. @gries21 on using multiple measures of dispersion and association].
 
 Problem:
 The contexts in which ambiguity is avoided/not avoided might be rather evenly dispersed themselves.
@@ -111,10 +144,40 @@ Lexical and syntactical correlates of the avoided structure might be avoided as 
 
 ## Lexical specificity
 
-As a simple measure the productiviy index [@baayen]
+The ratio of hapaxes [henceforth $\alpha\textsubscript{1}$ @evert05: 130] on either side of a given lexeme was used as a simple measure of how fixed the immediate lexico-grammatical context is.
+
+## Model
+
+While controlling for clumpiness with dwg did not substantially change the effect
+of lol, it did improve the fit of the model
+
+why gam: [@gam; @wood17]
+Semi-parametric
+Both extremely high and extremely low values of dwg suggest special values.
+Most of the variables used in the model are not expected to have a monotonic relationship with the proportion of *-s* occurrences.
+Very badly dispersed lexemes are overrepresented in terms of frequency,
+and an extremely even dispersion suggests uses typical of function words.
+The same is true for productivity or contextual fixedness.
+Both extremely high and extremely low values are untypical.
+
+dp did not improve the model significantly and was dropped also due to correlation with dwg.
+
+Predicting counts of *-s* directly with poisson or negative binomial regression leads to problematic model properties such as highly skewed residuals.
+Human perception has been found to be more sensitive to proportional changes of stimuli rather than absolute ones [cf. @kromer03].
+With that in mind, the independent variable to be predicted was set to the proportion of occurrences of *-s*.
+As such the possible values can range from 0 to 1 inclusively.
+Therefore, the distribution chosen to be fitted was a zero-one-inflated beta distribution [@ospina+ferrari12; @rigby19].
+To allow for the necessary flexibility in the distribution, the final models were created with the R package *gamlss* [@gamlss] using the smoothing splines provided by *mgcv* [@wood17].
+
+Strongly kurtotic, high amount of extreme values, which is not unexpected for language data.
 
 # Conclusion
 
+Word embeddings and transformer networks like BERT may provide an interesting route for further studies in ambiguity [e.g. @beekhuizen_et_al21; @du_et_al19; @wiedemann19].
+Clustering techniques can be used to detect homonymy [@lee21], which could be used in corpus annotation as a replacement of classical lemmatization.
+If robust and carefully applied, this could potentially lead to decreases in noise.
+Those recent successes in practical application are promising for the use in more descriptive application.
+They can provide another angle on co-occurrence statistics, and were only sparsely used in this study since there has been little systematic application in corpus linguistics.
 Include more contextual and "world knowledge" information, such as images [e.g. @kottur16; @shahmohammadi21].
 Recent advances in context embedding might provide tools to further test where real ambiguity exists and where it affects the system of language.
 
