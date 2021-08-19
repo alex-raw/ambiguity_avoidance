@@ -1,100 +1,176 @@
 library(data.table)
 library(parallel)
-library(mgcv)
 library(gamlss)
 set.seed(667)
-x <- readRDS("BNC_data_annotated")
+
+# }}} --------------------------------------------------------------------------
+# {{{ Modelling
 
 system.time({
 
-y <- x[(f_other - f) != 0, f2 := f - f_other
-][, `:=`(
-    f_noun = (f_noun + f_noun_s + f_ambig),
-    f_verb = (f_verb + f_verb_s + f_ed + f_ambig),
-    f_noun_s_rel = f_noun_s / f2,
-    f_verb_s_rel = f_verb_s / f2,
-    f_s_rel = f_s / f2,
-    f_ed_rel = f_ed / f2
-    )
-][f2 > 70, conv := ifelse(f_noun > f_verb, f_verb / f_noun, f_noun / f_verb)
-]#[hw != "gim"]
+x <- readRDS("BNC_data_annotated")
+y <- x[(f_other / f) %between% c(0, .9)
+     ][, `:=`(
+     f2 = f - (f_other + f_proper),
+     f_noun = (f_noun + f_noun_s + f_ambig_noun),
+     f_verb = (f_verb + f_verb_s + f_ed + f_ambig_verb)
+     )][,
+     conversion := fifelse(f_noun > f_verb, 1 - (f_verb / f_noun), (f_noun / f_verb) - 1)
+     ][
+     f_proper < (f_noun + f_verb)
+     ]
 
-# Modelling
 training <- y[, .(
-    hw, f2, conv, f_noun, f_verb, f_s_rel, f_s, f_noun_s_rel, f_verb_s_rel,
-    f_ed, f_ed_rel, dwg, dp.norm, Hapax, i.Hapax
-    )
-] |> na.omit()
+    hw, f, f2, f_noun, f_verb, f_noun_s, f_verb_s, f_s, f_ed,
+    f_ambig_noun, f_ambig_verb,
+    conversion, dwg, cos_sim_s, dp.norm,
+    alpha1_left = Hapax,
+    alpha1_right = i.Hapax,
+    )][
+    f2 > 50 & alpha1_left > .35 & alpha1_right > .35
+    ]
 
-nouns <- training[f_noun >= f_verb]
-verbs <- training[f_verb >= f_noun]
+nouns <- copy(training)[, noun_s_rel := (f_noun_s + f_ambig_noun) / f_noun
+    ] |> na.omit()
+verbs <- copy(training)[, verb_s_rel := (f_verb_s + f_ambig_verb) / f_verb
+    ] |> na.omit()
+eds <- copy(training)[, ed_rel := f_ed / (f_verb + f_ambig_verb)
+    ] |> na.omit()
 
-indep <- "~ pb(conv, control = pb.control(inter = 15)) + pb(dwg) + pb(dp.norm) + pb(Hapax) + pb(i.Hapax)"
+form  <- ~ pb(conversion) + pb(dwg) + pb(alpha1_right) + pb(alpha1_left) + pb(cos_sim_s)
+form2 <- ~ pb(conversion) + pb(dwg) + pb(alpha1_right) + pb(alpha1_left)
 
-m_verb <- as.formula(paste("f_verb_s_rel", indep)) |>
-    gamlss(nu.formula = as.formula(indep),
-           # tau.formula = as.formula(indep),
-           data = verbs, family = BEINF)
+m_verb <- gamlss(verb_s_rel ~
+    pb(conversion) + pb(dwg) + pb(cos_sim_s) + pb(alpha1_right) + pb(alpha1_left),
+    sigma.formula = form, nu.formula = form, tau.formula = form,
+    control = gamlss.control(n.cyc = 30),
+    data = verbs, family = BEINF)
 
-m_noun <- as.formula(paste("f_noun_s_rel", indep)) |>
-    gamlss(nu.formula = as.formula(indep),
-           tau.formula = as.formula(indep),
-           data = nouns, family = BEINF)
+m_noun <- gamlss(noun_s_rel ~
+    pb(conversion) + pb(dwg) + pb(cos_sim_s) + pb(alpha1_right) + pb(alpha1_left),
+    sigma.formula = form, nu.formula = form, tau.formula = form,
+    data = nouns, family = BEINF)
 
-m_noun_ed <- as.formula(paste("f_ed_rel", indep)) |>
-    gamlss(nu.formula = as.formula(indep),
-           tau.formula = as.formula(indep),
-           data = nouns, family = BEINF)
+m_ed <- gamlss(ed_rel ~
+    pb(conversion) + pb(dwg) + pb(alpha1_right) + pb(alpha1_left),
+    sigma.formula = form2, nu.formula = form2, tau.formula = form2,
+    data = eds, family = BEINF)
 
-r_squareds <- list(
-    Rqs_m_verb = Rsq(m_verb),
-    Rqs_m_noun = Rsq(m_noun),
-    Rqs_m_noun_ed = Rsq(m_noun_ed)
-)
+# }}} --------------------------------------------------------------------------
+# {{{ Plots and tables
 
-saveRDS(list(m_verb, m_noun, m_noun_ed, r_squareds), "ambig_models")
-models <- readRDS("ambig_models")
-models$r_squareds
+create_coef_plots <- function(x) {
+    name <- deparse(substitute(x))
+    for (parameter in c("mu", "sigma", "nu")) {
+        for (term in names(coef(x))[-1]) {
+            filename <- gsub("[()]|pb|m_", "", term)
+            jpeg(paste0("../figures/", name, "_", parameter, "_", filename, ".jpg"),
+                 width = 720, height = 720)
+            par(cex = 2)
+            term.plot(x, term = term, what = parameter,
+                 ylim = "free", rug = TRUE, xlab = "")
+            abline(h = 0, lty = "dashed")
+            dev.off()
+        }
+    }
+}
+
+create_diagnostic_plot <- function(x, name) {
+    jpeg(paste0("../figures/", name, "_diagnostic.jpg"),
+         width = 1280, height = 800)
+    plot(x)
+    dev.off()
+}
+
+clean_plot_gamlss <- function(x) {
+    colname <- deparse(substitute(x))
+    x <- capture.output(create_diagnostic_plot(x, colname)) # side effect!! creates plot jpg
+    strsplit(x, " = ") |>
+        Filter(f = \(y) length(y) == 2) |>
+        sapply(trimws) |>
+        t() |> data.table() |>
+        setNames(c("coefficient", colname))
+}
+
+# }}} --------------------------------------------------------------------------
+# {{{ Export
+
+create_coef_plots(m_verb)
+create_coef_plots(m_noun)
+create_coef_plots(m_ed)
+
+Reduce(\(x, y) merge(x, y, sort = FALSE), list(
+    clean_plot_gamlss(m_verb),
+    clean_plot_gamlss(m_noun),
+    clean_plot_gamlss(m_ed))
+) |> saveRDS("resid_table")
+
+coef_tables <- lapply(
+    list(m_verb = m_verb, m_noun = m_noun, m_ed = m_ed),
+    parameters::model_parameters
+) |> saveRDS("coef_tables")
+
+snip_gamlss_summary <- function(x)
+    gsub("\\*", "-", tail(capture.output(x), 10))
+
+list(m_verb = snip_gamlss_summary(summary(m_verb)),
+     m_noun = snip_gamlss_summary(summary(m_noun)),
+     m_ed   = snip_gamlss_summary(summary(m_ed))
+) |> saveRDS("summaries")
+
+list(m_verb = Rsq(m_verb),
+     m_noun = Rsq(m_noun),
+     m_ed = Rsq(m_ed)
+) |> saveRDS("Rsq_vals")
 
 })
 
+x <- readRDS("BNC_data_annotated")
+
+collostr <- y[f_noun > f_verb, wclass := "noun"
+            ][f_verb > f_noun, wclass := "verb"
+            ][order(ll_verb, decreasing = TRUE)]# |> na.omit()
+
 library(ggplot2)
-library(ggstatsplot)
+library(patchwork)
+options(scipen = 1, digits = 2)
 
-to_plot <- m_verb
-summary(to_plot)
-plot(to_plot)
-par(mfrow = c(2, 3))
-term.plot(to_plot, ylim = "free", rug = TRUE)
-term.plot(to_plot, ylim = "free", rug = TRUE, what = "nu")
-term.plot(to_plot, ylim = "free", rug = TRUE, what = "tau")
-abline(h = 0)
+uncanny_verbs <- collostr |>
+ggplot(aes(conversion, ll_verb, alpha = 1 - dp.norm, color = Hapax)) +
+    geom_point(aes(size = f, shape = wclass)) +
+    scale_size_continuous(trans = "log10") +
+    scale_color_continuous(type = "viridis") +
+    scale_y_log10() +
+    # geom_text(aes(label = hw)) +
+    theme_minimal() + geom_smooth()
 
-plot_coefs <- function(x, xlims, ...)
-    ggcoefstats(x, exclude.intercept = TRUE, ...) + xlim(xlims)
+s <- collostr[f2 > 100] |>
+ggplot(aes(conversion, ll_noun_s, alpha = 1 - dp.norm, color = cos_sim_s)) +
+    geom_point(aes(size = f)) +
+    # geom_text(aes(label = hw)) +
+    scale_color_continuous(type = "viridis") +
+    scale_size_continuous(trans = "log10") +
+    scale_y_log10() +
+    theme_minimal() + geom_smooth()
 
-plot1 <- plot_coefs(m_verb, c(-10, 16), title = "lal")
-plot2 <- plot_coefs(m_noun, c(-7, 10), title = "lel")
-plot3 <- plot_coefs(m_noun_ed, c(-10, 10), title = "lol")
+ed <- collostr[f2 > 100] |>
+ggplot(aes(conversion, log(f_ed), alpha = 1 - dp.norm, color = cos_sim_s)) +
+    geom_point(aes(size = f)) +
+    # geom_text(aes(label = hw)) +
+    scale_color_continuous(type = "viridis") +
+    scale_size_continuous(trans = "log10") +
+    scale_y_log10() +
+    theme_minimal() + geom_smooth()
 
-tables <- lapply(list(m_verb, m_noun, m_noun_ed), ggcoefstats, output = "tidy")
-tables[[1]]$term
+s <- collostr[f2 > 100] |>
+ggplot(aes(conversion, f_verb_s_rel2, alpha = 1 - dp.norm)) +
+    geom_point(aes(size = f)) +
+    # geom_text(aes(label = hw)) +
+    scale_color_continuous(type = "viridis") +
+    scale_size_continuous(trans = "log10") +
+    scale_y_log10() +
+    theme_minimal() + geom_smooth()
 
-# plot(x[f > 50, .(
-#     log_f = log(f),
-#     Hapax,
-#     # alpha2, i.alpha2, Entropy, i.Entropy, P,
-#     dwg,
-#     dp.norm,
-#     cos_sim_s
-# )], pch = ".")
-
-# # Collostruction analysis
-# collustr <- x[!is.na(ll_ambig)
-# ][order(ll_ambig, decreasing = TRUE), .(hw, ll_ambig, cos_sim_s)
-# ]
-# print(collustr, 15)
-# ggplot(na.omit(collustr), aes(cos_sim_s, log(ll_ambig))) +
-#     geom_point() + geom_smooth() + ylim(c(0, 10)) + theme_minimal()
+ed + s
 
 # vim:shiftwidth=4:

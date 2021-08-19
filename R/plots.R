@@ -1,14 +1,9 @@
 library(ggplot2)
 library(ggstatsplot)
-
-to_plot <- m_verb
-summary(to_plot)
-plot(to_plot)
-par(mfrow = c(2, 3))
-term.plot(to_plot, ylim = "free", rug = TRUE)
-term.plot(to_plot, ylim = "free", rug = TRUE, what = "nu")
-term.plot(to_plot, ylim = "free", rug = TRUE, what = "tau")
-abline(h = 0)
+x <- readRDS("BNC_data_annotated")
+m <- readRDS("ambig_models_BNC")
+# x <- readRDS("BNC_data_annotated")
+m <- readRDS("ambig_models_BNC2014")
 
 plot_coefs <- function(x, xlims, ...)
     ggcoefstats(x, exclude.intercept = TRUE, ...) + xlim(xlims)

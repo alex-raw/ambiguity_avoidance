@@ -182,23 +182,23 @@ get_vectors <- function(x) {
 
 add_cos_sim <- function(x) {
     word_vectors <- get_vectors(x)
-    x[s == "s", .(word = first(word)), by = hw
+    x[s == "s", .(word = first(word)), by = lemma
     ][, lapply(.SD, as.character)
-    ][hw %chin% rownames(word_vectors) & hw != word,
+    ][lemma %chin% rownames(word_vectors) & lemma != word,
         cos_sim_s := psim2(
-            word_vectors[hw, ],
+            word_vectors[lemma, ],
             word_vectors[word, ],
             method = "cosine",
             norm = "l2"
         )
-    ][, `:=`(hw = as.factor(hw), word = NULL)]
+    ][, `:=`(lemma = as.factor(lemma), word = NULL)]
 }
 # }}} --------------------------------------------------------------------------
 # {{{ Main
 
 add_measures <- function(x, s_attr, groups, disp_fun, context) {
     kwic_names <- c(paste0("L", 1:context), paste0("R", 1:context))
-    x[, (kwic_names) := embed_kwic(hw, context)] # TODO: don't hardcode hw
+    x[, (kwic_names) := embed_kwic(lemma, context)] # TODO: don't hardcode lemma
     half <- seq_len(length(kwic_names) / 2)
 
     combs <- Map(c, s_attr, groups)
@@ -211,28 +211,30 @@ add_measures <- function(x, s_attr, groups, disp_fun, context) {
         lapply(combs, get_dp, x, disp_fun),
         lapply(combs, get_dwg, x)
     )) # TODO: factor out lapply(combs, fun, ...) |> spread()
-    merge(x, sims, by = "hw", all = TRUE)
+    merge(x, sims, by = "lemma", all = TRUE)
 }
 
 system.time({
 
 x <- import_corpus(
-        corpus   = "BNC",
-        p_attrs  = c("word", "hw", "pos"),
+        corpus   = "BNC2014-S",
+        p_attrs  = c("word", "lemma", "pos"),
         s_attrs  = "text_id"
     ) |>
     group_pos(c(
-        noun     = "^N",
-        verb     = "^VV",
-        noun_s   = "^NN2",
-        verb_s   = "^VVZ",
-        verb_ed  = "^VVD|^VVN",
-        ambig    = "NN2-VVZ|VVZ-NN2"
+        noun       = "^N",
+        verb       = "^VV",
+        noun_s     = "^NN2",
+        verb_s     = "^VVZ",
+        verb_ed    = "^VVD|^VVN",
+        ambig_noun = "NN2-VVZ",
+        ambig_verb = "VVZ-NN2",
+        proper     = ".*NP.*"
     )) |>
     group_suffix("ed") |> group_suffix("s")
 
 y <- add_measures(x,
-        s_attr   = "hw",
+        s_attr   = "lemma",
         groups   = list(NULL, "s", "ed", "pos_group"),
         disp_fun = "dp.norm",
         context  = 1
@@ -242,8 +244,8 @@ setcolorder(y, sort(names(y), decreasing = TRUE))
 
 })
 
-saveRDS(x, "BNC_data_raw")
-saveRDS(y, "BNC_data_annotated")
+saveRDS(x, "BNC2014-S_data_raw")
+saveRDS(y, "BNC2014-S_data_annotated")
 
 # }}} --------------------------------------------------------------------------
 # {{{
@@ -265,7 +267,7 @@ saveRDS(y, "BNC_data_annotated")
 #     group_suffix("ed") |> group_suffix("s")
 
 # y <- add_measures(x,
-#         s_attr   = "hw",
+#         s_attr   = "lemma",
 #         groups   = list(NULL, "s", "ed", "pos_group"),
 #         disp_fun = "dp.norm",
 #         context  = 1
