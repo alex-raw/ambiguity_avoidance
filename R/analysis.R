@@ -95,6 +95,7 @@ clean_plot_gamlss <- function(x) {
 # }}} --------------------------------------------------------------------------
 # {{{ Export
 
+
 create_coef_plots(m_verb)
 create_coef_plots(m_noun)
 create_coef_plots(m_ed)
@@ -122,6 +123,24 @@ list(m_verb = Rsq(m_verb),
      m_noun = Rsq(m_noun),
      m_ed = Rsq(m_ed)
 ) |> saveRDS("Rsq_vals")
+
+
+jpeg("other_coefs_verb.jpg",
+     width = 1280, height = 800)
+term.plot(m_verb, what = "mu", pages = 1, ask = FALSE, ylim = "free",
+          term = names(coef(m_noun)[-1:-2]))
+dev.off()
+
+jpeg("other_coefs_noun",
+     width = 1280, height = 800)
+term.plot(m_noun, what = "mu", pages = 1, ask = FALSE, ylim = "free",
+          term = names(coef(m_noun)[-1:-2]))
+dev.off()
+
+jpeg("other_coefs_ed.jpg",
+     width = 1280, height = 800)
+term.plot(m_ed, what = "mu", pages = 1, ask = FALSE, ylim = "free")
+dev.off()
 
 })
 

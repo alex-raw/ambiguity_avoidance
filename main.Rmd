@@ -24,8 +24,6 @@ header-includes:
 
 ---
 
-\newpage
-
 ``` {R imports, echo=FALSE, include = FALSE}
 library(parameters)
 coef_tables <- readRDS("R/coef_tables")
@@ -35,6 +33,8 @@ Rsq_vals <- readRDS("R/Rsq_vals")
 resid_table <- rbind(resid_table, c(list(coefficient = "pseudo R²"), Rsq_vals))
 resid_table[-1] <- lapply(resid_table[-1], as.numeric)
 ```
+
+\newpage
 
 # Introduction
 
@@ -146,10 +146,10 @@ show LLR graph to show that it is continuous and monotonic
 
 Proper names were commonly mistagged as verbs in the datasets, causing heavy tails in the residuals, therefore excluded from the final analysis.
 
-## Textual specificity
+## Textual dispersion
 
 In order to measure the textual specificity of lexemes,
-and penalize forms with very specific contextually bound uses,
+and take account for lexical items with very specific contextually bound uses,
 two types of dispersion are used.
 The first is the Deviation of Proportions across corpus parts (DP.norm) [@gries08], more specifically the normalized version [cf. @lijffijt+gries12].
 As the basic of unit, the individual texts were used by text ID.
@@ -187,8 +187,8 @@ since lumping them together conflates quite different pieces of information,
 considering the direction of processing, the branching structure of English, etc.
 For example, a token that is always preceded by a definite article as a part of a name, scores an extremely low $\alpha\textsubscript{1}$ value.
 
-Lemmas that had *-s* forms that only occurred in totally fixed contexts, therefore scoring alpha (Hapax) values of lower than 0.3 were excluded as outliers.
-Exclusion of those observations improved distributional properties of the models.
+Lemmas that had *-s* forms that only occurred in totally fixed contexts, therefore scoring $\alpha\textsubscript{1}$ values of lower than 0.3 were excluded as outliers.
+Exclusion of those observations slightly improved distributional properties of the models.
 Examples for those outliers are abbreviations (e.g. *e.g.*, *pp.*, *etc.*, etc.), and parts of multi-word names.
 
 On the lower frequency bands this is due to a substantial decrease of noise as it is difficult to estimate the proportion of *-s* only based on a few occurrences of *-s*.
@@ -196,29 +196,38 @@ For the higher frequency bands, it is in many cases equal to the exclusion of mo
 <!-- TODO: include example -->
 This is conceptually unproblematic since multi-word structures should be treated as individual units, and as a different category of lexeme.
 
-# Analysis
-## Overview
-
-## Modelling inflection ratio
-
-While controlling for clumpiness with dwg did not substantially change the effect
-of conversion, it did improve the fit of the model.
-
-why gam: [@gam; @wood17]
-Semi-parametric
-Both extremely high and extremely low values of dwg suggest special values.
+Both extremely high and extremely low values of DWG suggest special values.
 Most of the variables used in the model are not expected to have a monotonic relationship with the proportion of *-s* occurrences.
 Very badly dispersed lexemes are overrepresented in terms of frequency,
 and an extremely even dispersion suggests uses typical of function words.
 The same is true for productivity or contextual fixedness.
 Both extremely high and extremely low values are untypical.
 
-Predicting counts of *-s* directly with poisson or negative binomial regression leads to problematic model properties such as highly skewed residuals.
+# Analysis
+
+## Overview
+
+## Modelling inflection ratio
+
+In the following sections, three different regression models will be presented.
+To allow for the necessary flexibility in the distribution and fit,
+the model framework chosen was GAMLSS [@gamlss] that allow the use of smoothing spline and fitting the required inflated beta distribution.
+The models were created with the R package *gamlss* [@stasinopoulos2017].
+
+Predicting counts of *-s* directly with poisson or negative binomial regression leads to problematic model properties.
+
+The function of the following models is mostly a first exploration of the above-mentioned measures and their influence on inflection across the verb-noun continuum.
+The relationship between the variables can be expected to be non-monotonic and non-linear.
+
+It is a semi-parametric approach that allows to fit a wide variety of distributions,
+and combine linear terms with smoothed terms.
 Human perception has been found to be more sensitive to proportional changes of stimuli rather than absolute ones [cf. @kromer03].
 With that in mind, the independent variable to be predicted was set to the proportion of occurrences of *-s*.
 As such the possible values can range from 0 to 1 inclusively.
 Therefore, the distribution chosen to be fitted was a zero-one-inflated beta distribution [@ospina+ferrari12; @rigby19].
-To allow for the necessary flexibility in the distribution, the model framework chosen was GAMLSS that allow the use of smoothing spline and fitting the required inflated beta distribution. The models were created with the R package *gamlss* [@gamlss].
+
+While controlling for clumpiness with dwg did not substantially change the effect
+of conversion, it did improve the fit of the model.
 
 ## Models
 
