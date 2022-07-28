@@ -97,7 +97,8 @@ get_assoc <- function(group, x, s_attr) {
     x[, .(o11 = as.numeric(.N)), by = c(s_attr, group)
     ][, f := sum(o11), by = s_attr
     ][, f2 := sum(o11), by = group
-    ][, ll := ll(o11, f, f2, nrow(x))] |>
+    ][, ll := ll_mini(f, o11, nrow(x), f2)] |>
+    # ][, ll := ll(o11, f, f2, nrow(x))] |>
         spread(c(s_attr, group), "ll")
 }
 

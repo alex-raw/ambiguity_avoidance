@@ -58,7 +58,7 @@ There is little potential for misinterpreting conversion or accidentally assumin
 Most lexemes that are commonly categorized as belonging to one of the open word classes are word class ambiguous only outside of a communicative context.
 Word class information and other grammatical and distributional information is stored in memory as part of the information about the lexeme, so this ambiguity is inherently a matter of degree.
 Lexical items are more or less strongly entrenched.
-How word class ambiguous a lexeme is also depends on the distributional make-up and semantic properties. The aim of this study is not to identify and analyze actual cases of ambiguity that are caused by conversion,
+How word class ambiguous a lexeme is also depends on the distributional make-up and semantic properties. The aim of this study is not to identify and ag actual cases of ambiguity that are caused by conversion,
 but rather large scale effects and tendencies on the composition of the lexical system.
 The underlying question is why a language like English allows to readily use a lexical item as either noun or verb even though there is little morphological marking in English.
 
@@ -79,7 +79,7 @@ while controlling for textual dispersion, regularity of occurrence and contextua
 In Section \ref{disc}, the results will be discussed in light of considerations from previous sections.
 Section \ref{conc} concludes the findings and provides suggestions for improvements in methodology. [^1]
 
-[^1]: The data was preprocessed using the *Corpus Workbench* [@cwb], all analyses were coded in *R* 4.1.0 [@R_base; @data.table], figures were created with *ggplot2* [@ggplot].
+[^1]: The data was preprocessed using the *Corpus Workbench* [@cwb], all ags were coded in *R* 4.1.0 [@R_base; @data.table], figures were created with *ggplot2* [@ggplot].
 
 # Word class ambiguity
 
@@ -128,14 +128,14 @@ This correlates with the activation of separate regions in memory for both nomin
 Interestingly, these effects are present even when word class membership is clear from the context,
 although those findings have been somewhat relativized by @lee06, where it is argued that other types of semantic ambiguity are also common in many of the word class ambiguous items, which might cause part of the effect.
 Nevertheless, the idea that syntactical context that is sufficient to disambiguate may still not be enough to optimize processing time falls in line with the hypothesized need for redundancy mentioned above.
-In contrast to the increased difficulty in processing, and in accordance with the idea of competing motivations, @bultena_et_al13 describe a facilitatory effect of word class ambiguity for learners.
+In contrast to the increased difficulty in processing, and in accordance with the idea of competing motivations, @bultena_et_al13 describe a facilitory effect of word class ambiguity for learners.
 
 In order to investigate how word class ambiguity affects the distribution of the available inflectional markers, the next section will focus on the frequency distribution of word class per lexical item in a corpus.
 
 ## Word class ambiguity in corpora {#conv_measure}
 
 The potential for conversions and word class ambiguity varies from lexeme to lexeme.
-Conversion as word formation can be spontaneous or lexicalized, showing different degrees of conventionalization.
+Conversion as word formation can be spontaneous or lexicalized, showing different degrees of conventualization.
 It can be assumed that there is a cline allowing for all degrees of lexicalization and conventionalization from polysemes up to fully fledged homonymy with varying degrees of lexical association between the nominal and lexical counterparts.
 
 (@) spontaneous: streisanded (twitter hashtag[^3])
@@ -159,7 +159,7 @@ In order to express the proportions of nominal and verbal tagging, the ratio of 
 This puts the measure into the range $[-1, 1]$ with $-1$ when the item was always tagged as verb, $+1$ when it was always tagged as noun and 0 when there was a perfect balance.
 Figure \ref{continuum} shows the statistical attraction (measured by the log-likelihood ratio [cf. @evert05]) to nominal and verbal uses plotted against the mentioned conversion ratio.
 Note that the cases with statistical repulsion are not part of the plot.
-The measure appears to connect the two distributions well, resulting in a rather homogeneous continuum
+The measure appears to connect the two distributions well, resulting in a rather homogenous continuum
 across which the attraction to nominal/verbal uses increases monotonously.
 The "uncanny valley" at around 0 is less densely populated, which is expected since there should be discretization effects between the word classes considering afore-mentioned clustering effects.
 
@@ -204,16 +204,16 @@ and an extremely even dispersion suggests uses typical of function words.
 
 ## Fixedness {#hapax}
 
-The ratio of hapaxes [henceforth $\alpha\textsubscript{1}$ @evert05: 130] on either side of a given lexeme was used as a simple measure of how fixed the immediate lexico-grammatical context is.
+The ratio of hapaxes [henceforth $alpha_{1}$ @evert05: 130] on either side of a given lexeme was used as a simple measure of how fixed the immediate lexico-grammatical context is.
 The term *hapax* is used a bit more liberally here and refers to types that occur only once in the given window.
 For ease of interpretation and in order to capture the fixedness in smaller units of text, the window was held at 1 token to the left and right.
 Preliminary experiments with larger windows were inconclusive, so the simplest version was used.
 The left and right contexts were also kept separate
 since lumping them together conflates quite different pieces of information,
 considering the direction of processing, the branching structure of English, priming effects etc.
-For example, a token that is always preceded by a definite article as a part of a name scores an extremely low $\alpha\textsubscript{1}$ value.
+For example, a token that is always preceded by a definite article as a part of a name scores an extremely low $alpha_{1}$ value.
 
-Lemmas that had *-s* forms that only occurred in totally fixed contexts, therefore scoring $\alpha\textsubscript{1}$ values of lower than 0.3, were excluded as outliers.
+Lemmas that had *-s* forms that only occurred in totally fixed contexts, therefore scoring $alpha_{1}$ values of lower than 0.3, were excluded as outliers.
 The exclusion of those observations slightly improved fit of the models.
 On the lower frequency bands this is due to a substantial decrease of noise as it is difficult to estimate the proportion of *-s* only based on a few occurrences of *-s*.
 For the higher frequency bands, examples for such outliers include abbreviations (e.g. *e.g.*, *pp.*, *etc.*, etc.), and parts of multi-word names (e.g. *New Zealander*).
@@ -224,7 +224,7 @@ For example, a noun that has an extremely high hapax ratio to the left hand side
 
 ## Cosine similarities of word vectors
 
-As a final measure to explore, I trained a simple GloVe embedding [@pennington14; @text2vec] on the data set.
+As a final measure to explore, I trained a simple GloVe embedding [@pennington14; @text2vec] on the dataset.
 The word vectors are a numerical representation of a two-layer neural network reconstructing the co-occurrence patterns of each lemma. They have shown to capture lexical and semantic information rather well.
 From the trained word vectors, I obtained the cosine similarities between the base forms and affixed forms which will be used as another co-occurrence metric in the final models.
 
@@ -284,7 +284,7 @@ $DP.norm$ behaved in a very similar way, which is not surprising since it correl
 Furthermore, it also correlates moderately with the other measures, making it a kind of in-between measure.
 It was also removed from the final models.
 
-The above-mentioned measures, $DWG$, $DP.norm$ (ch. \ref{disp}), $\alpha\textsubscript{1}$ for both left and right neighbors (ch. \ref{hapax}), and the conversion ratio introduced in (ch. \ref{conv_measure}) where finally picked as predictors.
+The above-mentioned measures, $DWG$, $DP.norm$ (ch. \ref{disp}), $alpha_{1}$ for both left and right neighbors (ch. \ref{hapax}), and the conversion ratio introduced in (ch. \ref{conv_measure}) where finally picked as predictors.
 The first regression model attempts to describe verbal uses of *-s* based on parts-of-speech tagging (POS) tagging.
 The second and third model repeat the same procedure for nominal *-s* and *-ed*, both as past tense and past participle.
 
@@ -305,12 +305,12 @@ A reliable method to annotate homographs, therefore, would be desirable.
 Deverbal adjectives were filtered out based on POS tagging.
 Since the measures used as dependent and independent variables are all inherently ratio based,
 they are undefined at 0 occurrences of their significant category.
-Therefore, the data set had to be split into two separate training sets,
+Therefore, the dataset had to be split into two separate training sets,
 each with lemmas that occurred at least once as a verb (for the verbal *-s* and *-ed* models),
 or once as a noun (for the nominal *-s* models).
 This explains the difference in sample sizes (cf. \ref{summaries}).
 A heuristic cut-off point of 50 occurrences was chosen since all metrics are increasingly subject to quantization effects and become rather unstable in lower frequency bands.
-Finally, proper names were commonly mistagged as verbs in the data sets, causing heavy tails in the residuals, and therefore excluded from the final analysis.
+Finally, proper names were commonly mistagged as verbs in the datasets, causing heavy tails in the residuals, and therefore excluded from the final analysis.
 
 ## Model fit
 
@@ -320,7 +320,7 @@ The model for verbal *-s* also shows a heavy right tail,
 which is caused by a high amount of extreme values.
 Arguably, this is not unusual for language data, and might be related to the sample size.
 All models show some degree of skew.
-An inherent property of the data set is a potential for multi-modality since the basic unit of analysis is lemmas.
+An inherent property of the dataset is a potential for multi-modality since the basic unit of analysis is lemmas.
 Clustering techniques or fitting model mixes might be strategies for improvement,
 without making arbitrary assumptions on lexical classes and creating cut-off points,
 e.g. for dominantly nominal vs. dominantly verbal lexemes.
@@ -342,64 +342,28 @@ The full summary of the models including estimates, p-values and confidence inte
 ## Influence of conversion on nominal and verbal *-s* vs *-ed*
 
 \begin{figure}[t!]
-     \centering
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_verb_mu_conversion.jpg}
-         \caption{verbal \textit{-s}}
-         \label{verb_mu_conv}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_noun_mu_conversion.jpg}
-         \caption{nominal \textit{-s}}
-         \label{noun_mu_conv}
-     \end{subfigure}
-     \begin{subfigure}[b]{\textwidth}
-         \centering
-         \includegraphics[width=0.5\textwidth]{figures/m_ed_mu_conversion.jpg}
-         \caption{\textit{-ed}}
-         \label{ed_mu_conv}
-     \end{subfigure}
-        \caption{Model estimates for conversion compared across the three models}
-        \label{conv_pair}
+    \centering
+    \includegraphics[width=\textwidth]{figures/docx_subfigures_1.png}
+    \caption{Model estimates for conversion compared across the three models}
+    \label{conv_pair}
 \end{figure}
 
 Figure \ref{conv_pair} shows a side by side comparison of the estimates for conversion.
 The effect of conversion on nominal *-s* follows a distinct U-shape
 with both ends of the continuum having little to no effect.
-Figure \ref{verb_mu_conv} shows a less pronounced U-shape,
+Figure \ref{conv_pair}b shows a less pronounced U-shape,
 and a much larger positive effect on the nominal side of the spectrum.
 In both cases, there is a depression towards the middle of the continuum rather than a simple monotonic relationship.
 
-In comparison, the influence of conversion on *-ed* is similar, but much smaller and prone to more uncertainty as can be seen in figure \ref{ed_mu_conv}.
+In comparison, the influence of conversion on *-ed* is similar, but much smaller and prone to more uncertainty as can be seen in figure \ref{conv_pair}c.
 
 ## Influence of dispersion and fixedness in context
 
 \begin{figure}[t!]
-     \centering
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_verb_mu_dwg.jpg}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_noun_mu_cos_sis.jpg}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_noun_mu_alpha1_right.jpg}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_noun_mu_alpha1_left.jpg}
-     \end{subfigure}
-     \caption{Coefficient estimates of dispersion measures and $\alpha\textsubscript{1}$ for verbal *-s*}
-     \label{other_coefs_verb}
+    \centering
+    \includegraphics[width=\textwidth]{figures/docx_subfigures_2.png}
+    \caption{Model estimates for conversion compared across the three models}
+    \label{other_coefs_verb}
 \end{figure}
 
 Figure \ref{other_coefs_verb} shows the remaining coefficients for the verbal *-s* model.[^2]
@@ -414,7 +378,7 @@ indicating that it could successfully account for some of the heteroscedasticity
 The variation is higher in both extreme ends of the measure.
 Interestingly, very highly dispersed lexemes show the most variable behavior.
 
-The boundedness to left- and right-hand-side tokens measured by $\alpha\textsubscript{1}$
+The boundedness to left- and right-hand-side tokens measured by $alpha_{1}$
 shows a slightly positive effect for extremely flexible lemmas, and a negative one for extremely inflexible ones.
 This pattern holds across all models and is only subject to larger fluctuations at the extreme ends.
 The largest slope can be observed in the left context in the model for nominal *-s* and the right context of verbal *-s* (cf. \ref{summaries}).
@@ -428,28 +392,10 @@ is correlated with a higher proportion of occurrences of the inflectional form.
 ## Zero components of the model
 
 \begin{figure}[t!]
-     \centering
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_verb_nu_conversion.jpg}
-         \caption{verbal \textit{-s}}
-         \label{verb_nu_conv}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.49\textwidth}
-         \centering
-         \includegraphics[width=\textwidth]{figures/m_noun_nu_conversion.jpg}
-         \caption{nominal \textit{-s}}
-         \label{noun_nu_conv}
-     \end{subfigure}
-     \begin{subfigure}[b]{\textwidth}
-         \centering
-         \includegraphics[width=0.5\textwidth]{figures/m_ed_nu_conversion.jpg}
-         \caption{\textit{-ed}}
-         \label{ed_nu_conv}
-     \end{subfigure}
-        \caption{Model estimates for conversion at 0 occurrences of inflection}
-        \label{zero}
+    \centering
+    \includegraphics[width=\textwidth]{figures/docx_subfigures_3.png}
+    \caption{Model estimates for conversion compared across the three models}
+    \label{zero}
 \end{figure}
 
 Inflection is not semantically or functionally viable for all lexemes, therefore there is a high amount of items that never occur inflected.
@@ -478,9 +424,9 @@ Interestingly, however, the probability for inflection seems to rise again towar
 In the case of verb-noun conversion, this means that inflectional marking is more common than expected for verbs that are not too used as nouns, therefore, more strongly entrenched as verbs than their more flexible counterparts toward the middle of the continuum.
 The same can be said about the noun-verb conversion.
 The absence of additional morphological cues might contribute to the difficulty in processing.
-This is somewhat counter-balanced by higher inflection ratios for very flexible collocates indicated by a positive effect of the $\alpha\textsubscript{1}$ and $DWG$ values, i.e. higher inflection ratio with highly flexible, and well-dispersed uses.
+This is somewhat counter-balanced by higher inflection ratios for very flexible collocates indicated by a positive effect of the $alpha_{1}$ and $DWG$ values, i.e. higher inflection ratio with highly flexible, and well-dispersed uses.
 
-Moreover, a distinct U-shape can be observed for the effect of conversion on nominal *-s*.
+Morever, a distinct U-shape can be observed for the effect of conversion on nominal *-s*.
 This suggests that verbs are as likely to be pluralized when they are ad-hoc conversions or have rather rare nominal homonyms/polysemes.
 The U-shape is less pronounced but noticeable in the other models.
 It is possible that the missing entrenchment as nominal/verbal lexeme, which potentially makes inflection a bit more awkward, is counter-acted by other patterns.
